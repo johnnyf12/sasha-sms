@@ -1,54 +1,36 @@
-import express from "express";
-import bodyParser from "body-parser";
-import twilio from "twilio";
-import OpenAI from "openai";
+import 'dotenv/config';
+import Twilio from 'twilio';
 
-const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+console.log("BOOTING APP");
 
-const twilioClient = twilio(
-  process.env.TWILIO_SID,
-  process.env.TWILIO_AUTH
+// sanity check
+if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+  console.error("Missing Twilio env vars", {
+    sid: process.env.TWILIO_ACCOUNT_SID,
+    token: process.env.TWILIO_AUTH_TOKEN ? "present" : "missing"
+  });
+  process.exit(1);
+}
+
+console.log("Twilio env vars detected");
+
+// init twilio ONLY after check
+const client = new Twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
 );
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY
+console.log("Twilio client initialized");
+
+// minimal server so Railway stays alive
+import express from 'express';
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Sasha is alive");
 });
 
-app.post("/sms", async (req, res) => {
-  const from = req.body.From;
-  const body = req.body.Body || "";
-
-  let reply = "im stepping away for a moment, text back shortly";
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "you are sasha. brief, lowercase, non explicit, booking focused. no emojis. redirect explicit messages to boundaries and booking. max 240 characters."
-        },
-        { role: "user", content: body }
-      ]
-    });
-
-    reply = completion.choices[0].message.content.trim();
-  } catch (e) {
-    console.log(e);
-  }
-
-  await twilioClient.messages.create({
-    to: from,
-    from: process.env.TWILIO_NUMBER,
-    body: reply
-  });
-
-  res.send("<Response></Response>");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
-
-app.get("/", (req, res) => res.send("sasha is live"));
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("running"));

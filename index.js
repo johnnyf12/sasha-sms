@@ -23,14 +23,34 @@ const client = new Twilio(
 console.log("Twilio client initialized");
 
 // minimal server so Railway stays alive
-import express from 'express';
+import express from "express";
+import bodyParser from "body-parser";
+import twilio from "twilio";
+
 const app = express();
+
+// Twilio needs urlencoded, not JSON
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
   res.send("Sasha is alive");
 });
 
-const PORT = process.env.PORT || 3000;
+// inbound SMS webhook
+app.post("/sms", (req, res) => {
+  const incomingMsg = req.body.Body;
+  const from = req.body.From;
+
+  console.log("Incoming SMS:", { from, incomingMsg });
+
+  const twiml = new twilio.twiml.MessagingResponse();
+  twiml.message("Hey 🙂 I got your message. What were you thinking?");
+
+  res.type("text/xml");
+  res.send(twiml.toString());
+});
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });

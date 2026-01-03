@@ -5,12 +5,6 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const PORT = process.env.PORT || 8080;
-
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
-
 // sanity check
 if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
   console.error("Missing Twilio env vars");
@@ -23,7 +17,7 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-// health check (IMPORTANT)
+// health check
 app.get("/", (req, res) => {
   res.send("Sasha SMS online");
 });
@@ -41,6 +35,9 @@ app.post("/sms/inbound", (req, res) => {
 
   res.type("text/xml").send(twiml.toString());
 });
+
+// 🚨 EXACTLY ONE LISTEN — AT THE VERY END
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);

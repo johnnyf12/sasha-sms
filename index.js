@@ -5,7 +5,19 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// sanity check
+// safety: surface crashes
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED REJECTION:", reason);
+});
+
+// env check
+if (!process.env.PORT) {
+  throw new Error("PORT not set by Railway");
+}
+
 if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
   console.error("Missing Twilio env vars");
 } else {
@@ -17,12 +29,11 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-// health check
+// routes
 app.get("/", (req, res) => {
   res.send("Sasha SMS online");
 });
 
-// inbound SMS webhook
 app.get("/sms/inbound", (req, res) => {
   res.status(200).send("GET inbound OK");
 });
@@ -36,8 +47,8 @@ app.post("/sms/inbound", (req, res) => {
   res.type("text/xml").send(twiml.toString());
 });
 
-// 🚨 EXACTLY ONE LISTEN — AT THE VERY END
-const PORT = process.env.PORT || 8080;
+// 🚨 EXACTLY ONE LISTEN — NO FALLBACK
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);

@@ -50,7 +50,23 @@ app.post("/sms/inbound", async (req, res) => {
 
     console.log("📩 Incoming SMS:", { from, body });
 
-    const chatwootUrl = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages`;
+   const chatwootUrl = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/contacts`;
+
+const response = await fetch(chatwootUrl, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    source_id: from,
+    name: from,
+    inbox_id: Number(process.env.CHATWOOT_INBOX_ID),
+    message: {
+      content: body,
+    },
+  }),
+});
 
     const response = await fetch(chatwootUrl, {
       method: "POST",

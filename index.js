@@ -83,6 +83,7 @@ const chatwootResponse = await fetch(chatwootUrl, {
 body: JSON.stringify({
   content: body,
   source_id: from,
+  sender_type: "Contact",
 }),
 });
 

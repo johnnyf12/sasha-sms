@@ -12,9 +12,10 @@ app.get("/debug/chatwoot", async (req, res) => {
       `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`,
       {
         headers: {
-          api_access_token: process.env.CHATWOOT_API_TOKEN,
-          Accept: "application/json",
-        },
+  api_access_token: process.env.CHATWOOT_API_TOKEN,
+  "Content-Type": "application/json",
+  Accept: "application/json",
+}
       }
     );
 
@@ -75,18 +76,18 @@ app.post("/sms/inbound", async (req, res) => {
 const chatwootResponse = await fetch(chatwootUrl, {
   method: "POST",
   headers: {
-    Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
+    api_access_token: process.env.CHATWOOT_API_TOKEN,
     "Content-Type": "application/json",
-    "Accept": "application/json"   // ← THIS LINE
+    Accept: "application/json",
   },
   body: JSON.stringify({
     source_id: from,
     name: from,
     inbox_id: Number(process.env.CHATWOOT_INBOX_ID),
     message: {
-      content: body
-    }
-  })
+      content: body,
+    },
+  }),
 });
 
 

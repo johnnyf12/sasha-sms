@@ -12,7 +12,7 @@ app.get("/debug/chatwoot", async (req, res) => {
       `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
+          api_access_token: process.env.CHATWOOT_API_TOKEN,
           Accept: "application/json",
         },
       }
@@ -25,7 +25,6 @@ app.get("/debug/chatwoot", async (req, res) => {
     res.status(500).send(String(err));
   }
 });
-
 
 // safety: surface crashes
 process.on("uncaughtException", (err) => {

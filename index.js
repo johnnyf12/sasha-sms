@@ -24,13 +24,12 @@ console.log("Twilio client initialized");
 
 // minimal server so Railway stays alive
 import express from "express";
-import bodyParser from "body-parser";
 import twilio from "twilio";
 
 const app = express();
 
 // Twilio needs urlencoded, not JSON
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
   res.send("Sasha is alive");

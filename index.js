@@ -25,7 +25,11 @@ app.get("/", (req, res) => {
 });
 
 // inbound SMS webhook
-app.post("/sms", (req, res) => {
+app.get("/sms/inbound", (req, res) => {
+  res.status(200).send("GET inbound OK");
+});
+
+app.post("/sms/inbound", (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
   twiml.message("Sasha here 💬");
   res.type("text/xml").send(twiml.toString());

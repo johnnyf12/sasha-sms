@@ -6,6 +6,27 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+app.get("/debug/chatwoot", async (req, res) => {
+  try {
+    const r = await fetch(
+      `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const text = await r.text();
+    res.status(r.status).send(text);
+  } catch (err) {
+    console.error("Debug Chatwoot failed:", err);
+    res.status(500).send(String(err));
+  }
+});
+
+
 // safety: surface crashes
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION:", err);

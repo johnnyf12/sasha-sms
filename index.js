@@ -79,6 +79,38 @@ app.post("/sms/inbound", async (req, res) => {
   }
 });
 
+app.post("/chatwoot/webhook", async (req, res) => {
+  try {
+    const event = req.body?.event;
+    const message = req.body?.message;
+    const conversation = req.body?.conversation;
+
+    // Only care about new messages
+    if (event !== "message_created") {
+      return res.status(200).send("ignored");
+    }
+
+    // Ignore human replies
+    if (message?.sender_type === "Agent") {
+      console.log("👤 Human replied, AI suppressed");
+      return res.status(200).send("ok");
+    }
+
+    const text = message?.content;
+    const from = conversation?.meta?.sender?.phone_number;
+
+    console.log("🤖 Chatwoot webhook received:", { from, text });
+
+    // DO NOTHING ELSE YET
+    // (no GPT, no Twilio reply yet)
+
+    res.status(200).send("ok");
+  } catch (err) {
+    console.error("Chatwoot webhook error:", err);
+    res.status(200).send("ok"); // never cause retries
+  }
+});
+
 // 🚨 EXACTLY ONE LISTEN — NO FALLBACK
 const PORT = process.env.PORT;
 

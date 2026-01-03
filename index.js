@@ -52,7 +52,7 @@ app.post("/sms/inbound", async (req, res) => {
 
    const chatwootUrl = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/contacts`;
 
-const response = await fetch(chatwootUrl, {
+const chatwootResponse = await fetch(chatwootUrl, {
   method: "POST",
   headers: {
     Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
@@ -80,12 +80,12 @@ const response = await fetch(chatwootUrl, {
       }),
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("❌ Chatwoot error:", response.status, text);
-    } else {
-      console.log("✅ Pushed message to Chatwoot");
-    }
+if (!chatwootResponse.ok) {
+  const text = await chatwootResponse.text();
+  console.error("❌ Chatwoot error:", chatwootResponse.status, text);
+} else {
+  console.log("✅ Pushed message to Chatwoot");
+}
 
     // IMPORTANT: silence Twilio for now
     res.status(200).send("");

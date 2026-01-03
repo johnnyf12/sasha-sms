@@ -57,16 +57,18 @@ const chatwootResponse = await fetch(chatwootUrl, {
   headers: {
     Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
     "Content-Type": "application/json",
+    "Accept": "application/json"   // ← THIS LINE
   },
   body: JSON.stringify({
     source_id: from,
     name: from,
     inbox_id: Number(process.env.CHATWOOT_INBOX_ID),
     message: {
-      content: body,
-    },
-  }),
+      content: body
+    }
+  })
 });
+
 
     const response = await fetch(chatwootUrl, {
       method: "POST",

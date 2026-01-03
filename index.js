@@ -71,28 +71,6 @@ app.post("/sms/inbound", async (req, res) => {
 
     console.log("📩 Incoming SMS:", { from, body });
 
-   const chatwootUrl = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages`;
-
-const chatwootResponse = await fetch(chatwootUrl, {
-  method: "POST",
-  headers: {
-    api_access_token: process.env.CHATWOOT_API_TOKEN,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-body: JSON.stringify({
-  content: body,
-  source_id: from,
-  sender_type: "Contact",
-}),
-});
-
-const responseText = await chatwootResponse.text();
-console.log("🧾 Chatwoot response:", {
-  status: chatwootResponse.status,
-  body: responseText,
-});
-
     // IMPORTANT: silence Twilio for now
     res.status(200).send("");
   } catch (err) {

@@ -1,6 +1,7 @@
 import express from "express";
 import twilio from "twilio";
 import OpenAI from "openai";
+import fetch from "node-fetch";
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -44,41 +45,39 @@ app.get("/", (req, res) => {
 });
 
 app.post("/sms/inbound", async (req, res) => {
-  console.log("📩 Incoming SMS:", req.body);
-
-  const twiml = new twilio.twiml.MessagingResponse();
-
   try {
-    const gptResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are Sasha. You are texting a potential client. Be natural, short, and human. One message only. Do not mention AI. Do not be explicit.",
-        },
-        {
-          role: "user",
-          content: req.body.Body,
-        },
-      ],
-      max_tokens: 60,
-      temperature: 0.7,
+    const from = req.body.From;
+    const body = req.body.Body;
+
+    console.log("📩 Incoming SMS:", { from, body });
+
+    const chatwootUrl = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages`;
+
+    const response = await fetch(chatwootUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: body,
+        source_id: from,
+      }),
     });
 
-    const reply = gptResponse.choices[0].message.content?.trim();
-
-    if (reply) {
-      twiml.message(reply);
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("❌ Chatwoot error:", response.status, text);
     } else {
-      console.warn("⚠️ GPT returned empty response — no SMS sent");
+      console.log("✅ Pushed message to Chatwoot");
     }
-  } catch (err) {
-    console.error("❌ GPT ERROR — no SMS sent:", err);
-    // intentional silence
-  }
 
-  res.type("text/xml").send(twiml.toString());
+    // IMPORTANT: silence Twilio for now
+    res.status(200).send("");
+  } catch (err) {
+    console.error("❌ Inbound handler failed:", err);
+    res.status(200).send("");
+  }
 });
 
 // 🚨 EXACTLY ONE LISTEN — NO FALLBACK

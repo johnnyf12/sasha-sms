@@ -1,7 +1,6 @@
 import express from "express";
 import twilio from "twilio";
 import OpenAI from "openai";
-import fetch from "node-fetch";
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));

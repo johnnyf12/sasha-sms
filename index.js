@@ -90,12 +90,11 @@ const chatwootResponse = await fetch(chatwootUrl, {
   }),
 });
 
-if (!chatwootResponse.ok) {
-  const text = await chatwootResponse.text();
-  console.error("❌ Chatwoot error:", chatwootResponse.status, text);
-} else {
-  console.log("✅ Pushed message to Chatwoot");
-}
+const responseText = await chatwootResponse.text();
+console.log("🧾 Chatwoot response:", {
+  status: chatwootResponse.status,
+  body: responseText,
+});
 
     // IMPORTANT: silence Twilio for now
     res.status(200).send("");

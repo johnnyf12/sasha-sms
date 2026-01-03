@@ -7,6 +7,10 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 8080;
 
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});
+
 // sanity check
 if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
   console.error("Missing Twilio env vars");

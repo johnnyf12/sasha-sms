@@ -30,8 +30,11 @@ app.get("/sms/inbound", (req, res) => {
 });
 
 app.post("/sms/inbound", (req, res) => {
+  console.log("📩 Incoming SMS:", req.body);
+
   const twiml = new twilio.twiml.MessagingResponse();
   twiml.message("Sasha here 💬");
+
   res.type("text/xml").send(twiml.toString());
 });
 

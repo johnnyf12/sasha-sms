@@ -90,19 +90,6 @@ const chatwootResponse = await fetch(chatwootUrl, {
   }),
 });
 
-
-    const response = await fetch(chatwootUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: body,
-        source_id: from,
-      }),
-    });
-
 if (!chatwootResponse.ok) {
   const text = await chatwootResponse.text();
   console.error("❌ Chatwoot error:", chatwootResponse.status, text);

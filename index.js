@@ -69,7 +69,8 @@ app.post("/sms/inbound", async (req, res) => {
     const from = req.body.From;
     const body = req.body.Body;
 
-    console.log("📩 Incoming SMS:", { from, body });
+    console.log("🔥🔥🔥 TWILIO HIT /sms/inbound 🔥🔥🔥");
+console.log(req.body);
 
     // IMPORTANT: silence Twilio for now
     res.status(200).send("");

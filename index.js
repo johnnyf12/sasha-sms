@@ -79,6 +79,14 @@ app.post("/sms/inbound", async (req, res) => {
   }
 });
 
+app.post("/chatwoot/webhook", (req, res) => {
+  console.log("🔔 Chatwoot webhook HIT");
+  console.log("Headers:", req.headers);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
+  res.status(200).send("ok");
+});
+
 app.post("/chatwoot/webhook", async (req, res) => {
   try {
     const event = req.body?.event;

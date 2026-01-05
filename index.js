@@ -11,10 +11,10 @@ app.get("/debug/chatwoot", async (req, res) => {
     const r = await fetch(
       `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`,
       {
-        headers: {
-  api_access_token: process.env.CHATWOOT_API_TOKEN,
+headers: {
   "Content-Type": "application/json",
-  Accept: "application/json",
+  "Accept": "application/json",
+  api_access_token: process.env.CHATWOOT_API_TOKEN,
 }
       }
     );

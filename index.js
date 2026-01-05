@@ -109,8 +109,8 @@ app.post("/sms/inbound", async (req, res) => {
   });
 
   res.status(200).send("OK");
+  sendToChatwoot({ from, text: body }).catch(console.error);
 });
-
 
 app.post("/chatwoot/webhook", (req, res) => {
   console.log("🔔 Chatwoot webhook HIT");

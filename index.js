@@ -65,20 +65,20 @@ app.get("/", (req, res) => {
 });
 
 app.post("/sms/inbound", async (req, res) => {
-  try {
-    const from = req.body.From;
-    const body = req.body.Body;
+  const from = req.body.From;
+  const body = req.body.Body;
 
-    console.log("🔥🔥🔥 TWILIO HIT /sms/inbound 🔥🔥🔥");
-console.log(req.body);
+  console.log("🔥 INBOUND:", { from, body });
 
-    // IMPORTANT: silence Twilio for now
-    res.status(200).send("");
-  } catch (err) {
-    console.error("❌ Inbound handler failed:", err);
-    res.status(200).send("");
-  }
+  await client.messages.create({
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to: from,
+    body: "Got it 👍",
+  });
+
+  res.status(200).send("OK");
 });
+
 
 app.post("/chatwoot/webhook", (req, res) => {
   console.log("🔔 Chatwoot webhook HIT");

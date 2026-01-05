@@ -59,6 +59,38 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+async function sendToChatwoot({ from, text }) {
+  const url = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/conversations`;
+
+  const payload = {
+    inbox_id: process.env.CHATWOOT_INBOX_ID,
+    source_id: from,
+    contact: {
+      phone_number: from,
+    },
+    messages: [
+      {
+        content: text,
+        message_type: "incoming",
+      },
+    ],
+  };
+
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      api_access_token: process.env.CHATWOOT_API_TOKEN,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("❌ Chatwoot fanout failed:", t);
+  }
+}
+
 // routes
 app.get("/", (req, res) => {
   res.send("Sasha SMS online");

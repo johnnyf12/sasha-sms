@@ -60,7 +60,7 @@ const openai = new OpenAI({
 });
 
 async function sendToChatwoot({ from, text }) {
-  const url = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages`;
+const url = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages.json`;
 
   const r = await fetch(url, {
     method: "POST",

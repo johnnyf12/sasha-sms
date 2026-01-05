@@ -60,35 +60,52 @@ const openai = new OpenAI({
 });
 
 async function sendToChatwoot({ from, text }) {
-  const url = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/conversations`;
+  const base = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`;
 
-  const payload = {
-    inbox_id: process.env.CHATWOOT_INBOX_ID,
-    source_id: from,
-    contact: {
-      phone_number: from,
-    },
-    messages: [
-      {
-        content: text,
-        message_type: "incoming",
-      },
-    ],
-  };
-
-  const r = await fetch(url, {
+  // 1️⃣ Find or create contact
+  const contactRes = await fetch(`${base}/contacts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       api_access_token: process.env.CHATWOOT_API_TOKEN,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      phone_number: from,
+      inbox_id: process.env.CHATWOOT_INBOX_ID,
+    }),
   });
 
-  if (!r.ok) {
-    const t = await r.text();
-    console.error("❌ Chatwoot fanout failed:", t);
-  }
+  const contact = await contactRes.json();
+  const contactId = contact.id;
+
+  // 2️⃣ Create or get conversation
+  const convoRes = await fetch(`${base}/conversations`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      api_access_token: process.env.CHATWOOT_API_TOKEN,
+    },
+    body: JSON.stringify({
+      inbox_id: process.env.CHATWOOT_INBOX_ID,
+      contact_id: contactId,
+    }),
+  });
+
+  const convo = await convoRes.json();
+  const conversationId = convo.id;
+
+  // 3️⃣ Create message
+  await fetch(`${base}/conversations/${conversationId}/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      api_access_token: process.env.CHATWOOT_API_TOKEN,
+    },
+    body: JSON.stringify({
+      content: text,
+      message_type: "incoming",
+    }),
+  });
 }
 
 // routes

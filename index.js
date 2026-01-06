@@ -42,49 +42,17 @@ async function sendSmsReply({ to, content }) {
   try {
     const msg = await client.messages.create({
       to,
-      from: "+17656306283", // your Twilio number, hard-coded for test
+      from: "+17656306283", // your Twilio number
       body: content,
     });
-
-    console.log("📨 SMS sent:", msg.sid, msg.status);
+    console.log("📨 SMS sent:", msg.sid);
   } catch (err) {
     console.error("❌ Twilio SMS error:", err.code, err.message);
   }
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-async function logBotMessageToChatwoot({ accountId, conversationId, content }) {
-  const url = `${process.env.CHATWOOT_BASE_URL}/api/v1/accounts/${accountId}/conversations/${conversationId}/messages`;
-
-  const r = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.CHATWOOT_API_TOKEN}`,
-    },
-    body: JSON.stringify({
-      content,
-      message_type: "outgoing",
-      sender_type: "bot",
-    }),
-  });
-
-  const body = await r.text();
-  console.log("🧾 Chatwoot bot log status:", r.status);
-  console.log("🧾 Chatwoot bot log body:", body);
-}
-
-// routes
-app.get("/", (req, res) => {
-  res.send("Sasha SMS online");
-});
-
 app.post("/chatwoot/webhook", async (req, res) => {
   console.log("📥 Chatwoot webhook hit");
-  console.log(JSON.stringify(req.body, null, 2));
 
   const conversation = req.body?.conversation;
   const message = req.body?.message;
@@ -98,28 +66,23 @@ app.post("/chatwoot/webhook", async (req, res) => {
   }
 
   const to = conversation?.meta?.sender?.phone_number;
-  const text = message.content;
 
-  if (!to || !text) {
+  if (!to) {
     return res.status(200).send("IGNORED");
   }
 
-  try {
-    // 1️⃣ SEND SMS (this was missing)
-    await sendSmsReply({
-      to,
-      content: "Got it 👍",
-    });
+  // 1️⃣ SEND SMS (REAL DELIVERY)
+  await sendSmsReply({
+    to,
+    content: "Got it 👍",
+  });
 
-    // 2️⃣ LOG TO CHATWOOT
-    await logBotMessageToChatwoot({
-      accountId: conversation.account_id,
-      conversationId: conversation.id,
-      content: "Got it 👍",
-    });
-  } catch (err) {
-    console.error("❌ Reply error:", err);
-  }
+  // 2️⃣ LOG TO CHATWOOT (UI)
+  await logBotMessageToChatwoot({
+    accountId: conversation.account_id,
+    conversationId: conversation.id,
+    content: "Got it 👍",
+  });
 
   res.status(200).send("OK");
 });

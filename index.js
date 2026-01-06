@@ -42,7 +42,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function sendChatwootReply({ accountId, conversationId, content }) {
+async function logBotMessageToChatwoot({ accountId, conversationId, content }) {
   const url = `${process.env.CHATWOOT_BASE_URL}/api/v1/accounts/${accountId}/conversations/${conversationId}/messages`;
 
   const r = await fetch(url, {
@@ -54,14 +54,14 @@ async function sendChatwootReply({ accountId, conversationId, content }) {
     body: JSON.stringify({
       content,
       message_type: "outgoing",
+      sender_type: "bot",
     }),
   });
 
   const body = await r.text();
-  console.log("📤 Chatwoot reply status:", r.status);
-  console.log("📤 Chatwoot reply body:", body);
+  console.log("🧾 Chatwoot bot log status:", r.status);
+  console.log("🧾 Chatwoot bot log body:", body);
 }
-
 
 // routes
 app.get("/", (req, res) => {
@@ -78,6 +78,13 @@ app.post("/chatwoot/webhook", async (req, res) => {
       conversationId: req.body.conversation.id,
       content: "Got it 👍",
     });
+
+    await logBotMessageToChatwoot({
+  accountId: conversation.account_id,
+  conversationId: conversation.id,
+  content: "Got it 👍",
+});
+
   } catch (err) {
     console.error("❌ Reply error:", err);
   }

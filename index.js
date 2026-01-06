@@ -6,15 +6,8 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get("/debug/chatwoot", async (req, res) => {
-  try {
-
-    const text = await r.text();
-    res.status(r.status).send(text);
-  } catch (err) {
-    console.error("Debug Chatwoot failed:", err);
-    res.status(500).send(String(err));
-  }
+app.get("/debug/chatwoot", (req, res) => {
+  res.status(501).send("Not implemented");
 });
 
 // safety: surface crashes

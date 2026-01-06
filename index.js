@@ -113,26 +113,27 @@ app.post("/chatwoot/webhook", (req, res) => {
 });
 
 app.post("/chatwoot/webhook", async (req, res) => {
-  try {
-    const event = req.body?.event;
-    const message = req.body?.message;
-    const conversation = req.body?.conversation;
+  res.status(200).send("OK"); // always ACK immediately
 
-    // Only care about new messages
-    if (event !== "message_created") {
-      return res.status(200).send("ignored");
-    }
+  const event = req.body?.event;
+  const message = req.body?.message;
+  const conversation = req.body?.conversation;
 
-    // Ignore human replies
-    if (message?.sender_type === "Agent") {
-      console.log("👤 Human replied, AI suppressed");
-      return res.status(200).send("ok");
-    }
+  // 1️⃣ Only react to inbound messages
+  if (event !== "message_created") return;
+  if (!message) return;
+  if (message.message_type !== "incoming") return;
 
-    const text = message?.content;
-    const from = conversation?.meta?.sender?.phone_number;
+  const from = conversation?.meta?.sender?.phone_number;
+  const text = message.content;
 
-    console.log("🤖 Chatwoot webhook received:", { from, text });
+  if (!from || !text) return;
+
+  console.log("🟣 Chatwoot inbound:", { from, text });
+
+  // 2️⃣ Decide AI vs silence (for now: AI replies)
+  await sendAIReply(from, text);
+});
 
     // DO NOTHING ELSE YET
     // (no GPT, no Twilio reply yet)

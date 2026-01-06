@@ -54,36 +54,12 @@ console.log("📨 Attempting SMS send to:", to);
 
 app.post("/chatwoot/webhook", async (req, res) => {
   console.log("📥 Chatwoot webhook hit");
+  console.log("🔎 message_type:", req.body?.message?.message_type);
 
-  const conversation = req.body?.conversation;
-  const message = req.body?.message;
-
-  if (!conversation || !message) {
-    return res.status(200).send("IGNORED");
-  }
-
-  if (message.message_type !== "incoming") {
-    return res.status(200).send("IGNORED");
-  }
-
-  const to = conversation?.meta?.sender?.phone_number;
-
-  if (!to) {
-    return res.status(200).send("IGNORED");
-  }
-
-  // 1️⃣ SEND SMS (REAL DELIVERY)
   await sendSmsReply({
-    to,
+    to: req.body?.conversation?.meta?.sender?.phone_number,
     content: "Got it 👍",
   });
-
-  // 2️⃣ LOG TO CHATWOOT (UI)
-//  await logBotMessageToChatwoot({
-//   accountId: conversation.account_id,
-//   conversationId: conversation.id,
-//   content: "Got it 👍",
-//  });
 
   res.status(200).send("OK");
 });

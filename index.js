@@ -57,10 +57,10 @@ async function sendChatwootReply({ accountId, conversationId, content }) {
     }),
   });
 
-  if (!r.ok) {
-    const t = await r.text();
-    console.error("❌ Chatwoot reply failed:", t);
-  } else {
+ const t = await r.text();
+console.log("📤 Chatwoot reply status:", r.status);
+console.log("📤 Chatwoot reply body:", t);
+ else {
     console.log("✅ Chatwoot reply sent");
   }
 }
@@ -71,32 +71,39 @@ app.get("/", (req, res) => {
 });
 
 app.post("/chatwoot/webhook", async (req, res) => {
-console.log("📥 Chatwoot webhook hit");
-console.log(JSON.stringify(req.body, null, 2));
-
-  res.status(200).send("OK"); 
-  
-  // always ACK immediately
+  console.log("📥 Chatwoot webhook hit");
+  console.log(JSON.stringify(req.body, null, 2));
 
   const event = req.body?.event;
   const message = req.body?.message;
   const conversation = req.body?.conversation;
 
-  if (event !== "message_created") return;
-  if (!message) return;
-  if (message.message_type !== "incoming") return;
+  if (event !== "message_created") {
+    return res.status(200).send("IGNORED");
+  }
+
+  if (!message || message.message_type !== "incoming") {
+    return res.status(200).send("IGNORED");
+  }
 
   const from = conversation?.meta?.sender?.phone_number;
   const text = message.content;
 
-  if (!from || !text) return;
+  if (!from || !text) {
+    return res.status(200).send("IGNORED");
+  }
 
   console.log("🟣 Chatwoot inbound:", { from, text });
 
+  // 🔥 THIS must happen BEFORE the ACK
   await sendChatwootReply({
-  accountId: req.body.account.id,
-  conversationId: conversation.id,
-  content: "Got it 👍",
+    accountId: conversation.account_id, // IMPORTANT
+    conversationId: conversation.id,
+    content: "Got it 👍",
+  });
+
+  // ✅ ACK goes LAST — final line inside this handler
+  res.status(200).send("OK");
 });
 
   // later: AI logic goes here

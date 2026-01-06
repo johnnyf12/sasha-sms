@@ -40,6 +40,7 @@ const client = twilio(
 
 async function sendSmsReply({ to, content }) {
   try {
+console.log("📨 Attempting SMS send to:", to);
     const msg = await client.messages.create({
       to,
       from: "+17656306283", // your Twilio number
@@ -86,8 +87,6 @@ app.post("/chatwoot/webhook", async (req, res) => {
 
   res.status(200).send("OK");
 });
-
-  // later: AI logic goes here
 
 app.post("/ping", (req, res) => {
   console.log("🔥 PING HIT", req.body);

@@ -55,7 +55,12 @@ app.get("/", (req, res) => {
 });
 
 app.post("/chatwoot/webhook", async (req, res) => {
-  res.status(200).send("OK"); // always ACK immediately
+console.log("📥 Chatwoot webhook hit");
+console.log(JSON.stringify(req.body, null, 2));
+
+  res.status(200).send("OK"); 
+  
+  // always ACK immediately
 
   const event = req.body?.event;
   const message = req.body?.message;

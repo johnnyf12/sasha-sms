@@ -8,7 +8,6 @@ app.use(express.json());
 
 app.get("/debug/chatwoot", async (req, res) => {
   try {
-        );
 
     const text = await r.text();
     res.status(r.status).send(text);

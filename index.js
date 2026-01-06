@@ -105,7 +105,6 @@ app.post("/chatwoot/webhook", async (req, res) => {
 });
 
   // later: AI logic goes here
-});
 
 app.post("/ping", (req, res) => {
   console.log("🔥 PING HIT", req.body);

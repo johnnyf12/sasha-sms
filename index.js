@@ -1,6 +1,7 @@
 import express from "express";
 import twilio from "twilio";
 import OpenAI from "openai";
+import fetch from "node-fetch";
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -42,6 +43,29 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+async function sendChatwootReply({ accountId, conversationId, content }) {
+  const url = `https://app.chatwoot.com/api/v1/accounts/${accountId}/conversations/${conversationId}/messages`;
+
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api_access_token": process.env.CHATWOOT_API_TOKEN,
+    },
+    body: JSON.stringify({
+      content,
+      message_type: "outgoing",
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("❌ Chatwoot reply failed:", t);
+  } else {
+    console.log("✅ Chatwoot reply sent");
+  }
+}
+
 // routes
 app.get("/", (req, res) => {
   res.send("Sasha SMS online");
@@ -69,6 +93,12 @@ console.log(JSON.stringify(req.body, null, 2));
   if (!from || !text) return;
 
   console.log("🟣 Chatwoot inbound:", { from, text });
+
+  await sendChatwootReply({
+  accountId: req.body.account.id,
+  conversationId: conversation.id,
+  content: "Got it 👍",
+});
 
   // later: AI logic goes here
 });

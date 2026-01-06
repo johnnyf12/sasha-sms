@@ -38,6 +38,20 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+async function sendSmsReply({ to, content }) {
+  try {
+    const msg = await client.messages.create({
+      to,
+      from: "+17656306283", // your Twilio number, hard-coded for test
+      body: content,
+    });
+
+    console.log("📨 SMS sent:", msg.sid, msg.status);
+  } catch (err) {
+    console.error("❌ Twilio SMS error:", err.code, err.message);
+  }
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -72,26 +86,43 @@ app.post("/chatwoot/webhook", async (req, res) => {
   console.log("📥 Chatwoot webhook hit");
   console.log(JSON.stringify(req.body, null, 2));
 
+  const conversation = req.body?.conversation;
+  const message = req.body?.message;
+
+  if (!conversation || !message) {
+    return res.status(200).send("IGNORED");
+  }
+
+  if (message.message_type !== "incoming") {
+    return res.status(200).send("IGNORED");
+  }
+
+  const to = conversation?.meta?.sender?.phone_number;
+  const text = message.content;
+
+  if (!to || !text) {
+    return res.status(200).send("IGNORED");
+  }
+
   try {
-    await sendChatwootReply({
-      accountId: req.body.conversation.account_id,
-      conversationId: req.body.conversation.id,
+    // 1️⃣ SEND SMS (this was missing)
+    await sendSmsReply({
+      to,
       content: "Got it 👍",
     });
 
+    // 2️⃣ LOG TO CHATWOOT
     await logBotMessageToChatwoot({
-  accountId: conversation.account_id,
-  conversationId: conversation.id,
-  content: "Got it 👍",
-});
-
+      accountId: conversation.account_id,
+      conversationId: conversation.id,
+      content: "Got it 👍",
+    });
   } catch (err) {
     console.error("❌ Reply error:", err);
   }
 
   res.status(200).send("OK");
 });
-
 
   // later: AI logic goes here
 

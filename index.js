@@ -91,6 +91,11 @@ app.post("/chatwoot/webhook", async (req, res) => {
   // later: AI logic goes here
 });
 
+app.post("/ping", (req, res) => {
+  console.log("🔥 PING HIT", req.body);
+  res.status(200).send("OK");
+});
+
 // 🚨 EXACTLY ONE LISTEN — NO FALLBACK
 const PORT = process.env.PORT;
 

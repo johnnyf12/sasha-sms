@@ -59,9 +59,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function sendToChatwoot({ from, text }) {
-const url = `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}/inboxes/${process.env.CHATWOOT_INBOX_ID}/messages.json`;
-
   const r = await fetch(url, {
     method: "POST",
     headers: {
@@ -88,30 +85,6 @@ app.get("/", (req, res) => {
   res.send("Sasha SMS online");
 });
 
-app.post("/sms/inbound", async (req, res) => {
-  const from = req.body.From;
-  const body = req.body.Body;
-
-  console.log("🔥 INBOUND:", { from, body });
-
-  await client.messages.create({
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to: from,
-    body: "Got it 👍",
-  });
-
-  res.status(200).send("OK");
-  sendToChatwoot({ from, text: body }).catch(console.error);
-});
-
-app.post("/chatwoot/webhook", (req, res) => {
-  console.log("🔔 Chatwoot webhook HIT");
-  console.log("Headers:", req.headers);
-  console.log("Body:", JSON.stringify(req.body, null, 2));
-
-  res.status(200).send("ok");
-});
-
 app.post("/chatwoot/webhook", async (req, res) => {
   res.status(200).send("OK"); // always ACK immediately
 
@@ -119,7 +92,6 @@ app.post("/chatwoot/webhook", async (req, res) => {
   const message = req.body?.message;
   const conversation = req.body?.conversation;
 
-  // 1️⃣ Only react to inbound messages
   if (event !== "message_created") return;
   if (!message) return;
   if (message.message_type !== "incoming") return;
@@ -131,18 +103,7 @@ app.post("/chatwoot/webhook", async (req, res) => {
 
   console.log("🟣 Chatwoot inbound:", { from, text });
 
-  // 2️⃣ Decide AI vs silence (for now: AI replies)
-  await sendAIReply(from, text);
-});
-
-    // DO NOTHING ELSE YET
-    // (no GPT, no Twilio reply yet)
-
-    res.status(200).send("ok");
-  } catch (err) {
-    console.error("Chatwoot webhook error:", err);
-    res.status(200).send("ok"); // never cause retries
-  }
+  // later: AI logic goes here
 });
 
 // 🚨 EXACTLY ONE LISTEN — NO FALLBACK

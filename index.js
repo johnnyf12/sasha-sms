@@ -59,12 +59,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-  const r = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      api_access_token: process.env.CHATWOOT_API_TOKEN,
-    },
     body: JSON.stringify({
       source_id: from,
       content: text,

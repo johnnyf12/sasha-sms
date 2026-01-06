@@ -8,16 +8,7 @@ app.use(express.json());
 
 app.get("/debug/chatwoot", async (req, res) => {
   try {
-    const r = await fetch(
-      `https://app.chatwoot.com/api/v1/accounts/${process.env.CHATWOOT_ACCOUNT_ID}`,
-      {
-headers: {
-  "Content-Type": "application/json",
-  "Accept": "application/json",
-  api_access_token: process.env.CHATWOOT_API_TOKEN,
-}
-      }
-    );
+        );
 
     const text = await r.text();
     res.status(r.status).send(text);

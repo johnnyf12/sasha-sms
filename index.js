@@ -49,21 +49,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-    body: JSON.stringify({
-      source_id: from,
-      content: text,
-      message_type: "incoming",
-    }),
-  });
-
-  if (!r.ok) {
-    const t = await r.text();
-    console.error("❌ Chatwoot fanout failed:", t);
-  } else {
-    console.log("✅ Chatwoot fanout OK");
-  }
-}
-
 // routes
 app.get("/", (req, res) => {
   res.send("Sasha SMS online");

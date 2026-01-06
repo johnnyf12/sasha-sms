@@ -79,11 +79,11 @@ app.post("/chatwoot/webhook", async (req, res) => {
   });
 
   // 2️⃣ LOG TO CHATWOOT (UI)
-  await logBotMessageToChatwoot({
-    accountId: conversation.account_id,
-    conversationId: conversation.id,
-    content: "Got it 👍",
-  });
+//  await logBotMessageToChatwoot({
+//   accountId: conversation.account_id,
+//   conversationId: conversation.id,
+//   content: "Got it 👍",
+//  });
 
   res.status(200).send("OK");
 });

@@ -76,9 +76,10 @@ function requireChatwootInboundMessage(req, res, next) {
 function dedupeChatwootMessages(req, res, next) {
   const messageId = req.body?.message?.id;
 
+  // If no ID, allow the message (cannot dedupe safely)
   if (!messageId) {
-    console.log("⚠️ Missing Chatwoot message ID");
-    return res.status(200).send("OK");
+    console.log("⚠️ No Chatwoot message ID — skipping dedupe");
+    return next();
   }
 
   if (seenMessageIds.has(messageId)) {

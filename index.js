@@ -4,6 +4,7 @@ import OpenAI from "openai";
 
 // In-memory idempotency cache (safe, resets on deploy)
 const seenMessageIds = new Set();
+const CHAOS_MODE = process.env.CHAOS_MODE === "true";
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -136,6 +137,11 @@ logWithReq(req, "📥 Chatwoot webhook hit", {
   messageId,
   sourceId,
 });
+
+if (CHAOS_MODE) {
+  logWithReq(req, "💥 Chaos mode enabled — simulating failure in handler");
+  throw new Error("Simulated handler failure");
+}
 
 const sendOnce = createOnce(sendSmsReply);
 

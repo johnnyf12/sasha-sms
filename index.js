@@ -9,9 +9,28 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+function logWithReq(req, message, extra = {}) {
+  console.log(message, { requestId: req.requestId, ...extra });
+}
+
 app.get("/debug/chatwoot", (req, res) => {
   res.status(501).send("Not implemented");
 });
+
+function attachRequestId(req, res, next) {
+  // Prefer upstream IDs if present, otherwise generate one
+  const headerId =
+    req.headers["x-request-id"] ||
+    req.headers["x-correlation-id"] ||
+    req.headers["cf-ray"]; // sometimes present behind proxies
+
+  req.requestId = String(headerId || `req_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+
+  res.setHeader("x-request-id", req.requestId);
+  next();
+}
+
+app.use(attachRequestId);
 
 // safety: surface crashes
 process.on("uncaughtException", (err) => {
@@ -56,39 +75,39 @@ console.log("📨 Attempting SMS send to:", to);
 }
 
 function requireChatwootInboundMessage(req, res, next) {
-  const phone =
-    req.body?.conversation?.meta?.sender?.phone_number;
+const phone = req.body?.conversation?.meta?.sender?.phone_number;
+const event = req.body?.event;
 
-  const event = req.body?.event;
+if (!phone || event !== "message_created") {
+  logWithReq(req, "⏭️ Ignoring non-inbound Chatwoot webhook", {
+    event,
+    hasPhone: Boolean(phone),
+  });
+  return res.status(200).send("OK");
+}
 
-  if (!phone || event !== "message_created") {
-    console.log("⚠️ Ignoring non-inbound Chatwoot webhook", {
-      event,
-      hasPhone: Boolean(phone),
-    });
-
-    return res.status(200).send("OK");
-  }
-
-  next();
+logWithReq(req, "✅ Inbound Chatwoot message accepted", { event });
+next();
 }
 
 function dedupeChatwootMessages(req, res, next) {
-  const messageId = req.body?.message?.id;
+const messageId = req.body?.message?.id;
+const sourceId = req.body?.message?.source_id; // often Twilio SID
 
-  // If no ID, allow the message (cannot dedupe safely)
-  if (!messageId) {
-    console.log("⚠️ No Chatwoot message ID — skipping dedupe");
-    return next();
-  }
+if (!messageId) {
+  logWithReq(req, "⚠️ No Chatwoot message ID — skipping dedupe", { sourceId });
+  return next();
+}
 
-  if (seenMessageIds.has(messageId)) {
-    console.log("🔁 Duplicate Chatwoot message ignored:", messageId);
-    return res.status(200).send("OK");
-  }
+if (seenMessageIds.has(messageId)) {
+  logWithReq(req, "🔁 Duplicate Chatwoot message ignored", { messageId, sourceId });
+  return res.status(200).send("OK");
+}
 
-  seenMessageIds.add(messageId);
-  next();
+seenMessageIds.add(messageId);
+logWithReq(req, "🆕 Message marked seen", { messageId, sourceId });
+next();
+
 }
 
 app.post(
@@ -97,8 +116,18 @@ app.post(
   dedupeChatwootMessages,
   async (req, res) => {
 
-  console.log("📥 Chatwoot webhook hit");
-  console.log("🔎 message_type:", req.body?.message?.message_type);
+const phone = req.body?.conversation?.meta?.sender?.phone_number;
+const messageId = req.body?.message?.id;
+const sourceId = req.body?.message?.source_id;
+const event = req.body?.event;
+
+logWithReq(req, "📥 Chatwoot webhook hit", {
+  event,
+  phone,
+  messageId,
+  sourceId,
+});
+
 
   await sendSmsReply({
     to: req.body?.conversation?.meta?.sender?.phone_number,

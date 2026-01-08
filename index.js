@@ -2,6 +2,9 @@ import express from "express";
 import twilio from "twilio";
 import OpenAI from "openai";
 
+// In-memory idempotency cache (safe, resets on deploy)
+const seenMessageIds = new Set();
+
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -67,6 +70,23 @@ function requireChatwootInboundMessage(req, res, next) {
     return res.status(200).send("OK");
   }
 
+  next();
+}
+
+function dedupeChatwootMessages(req, res, next) {
+  const messageId = req.body?.message?.id;
+
+  if (!messageId) {
+    console.log("⚠️ Missing Chatwoot message ID");
+    return res.status(200).send("OK");
+  }
+
+  if (seenMessageIds.has(messageId)) {
+    console.log("🔁 Duplicate Chatwoot message ignored:", messageId);
+    return res.status(200).send("OK");
+  }
+
+  seenMessageIds.add(messageId);
   next();
 }
 

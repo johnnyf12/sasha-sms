@@ -52,19 +52,18 @@ console.log("📨 Attempting SMS send to:", to);
   }
 }
 
-function requireChatwootSmsPayload(req, res, next) {
+function requireChatwootInboundMessage(req, res, next) {
   const phone =
     req.body?.conversation?.meta?.sender?.phone_number;
-  const messageType =
-    req.body?.message?.message_type;
 
-  if (!phone || messageType !== "incoming") {
-    console.log("⚠️ Ignoring non-incoming or malformed Chatwoot webhook", {
+  const event = req.body?.event;
+
+  if (!phone || event !== "message_created") {
+    console.log("⚠️ Ignoring non-inbound Chatwoot webhook", {
+      event,
       hasPhone: Boolean(phone),
-      messageType,
     });
 
-    // IMPORTANT: never trigger retries
     return res.status(200).send("OK");
   }
 
@@ -73,7 +72,7 @@ function requireChatwootSmsPayload(req, res, next) {
 
 app.post(
   "/chatwoot/webhook",
-  requireChatwootSmsPayload,
+  requireChatwootInboundMessage,
   async (req, res) => {
 
   console.log("📥 Chatwoot webhook hit");

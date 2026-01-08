@@ -93,6 +93,7 @@ function dedupeChatwootMessages(req, res, next) {
 app.post(
   "/chatwoot/webhook",
   requireChatwootInboundMessage,
+  dedupeChatwootMessages,
   async (req, res) => {
 
   console.log("📥 Chatwoot webhook hit");

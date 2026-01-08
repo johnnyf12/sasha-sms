@@ -9,6 +9,15 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+function createOnce(fn) {
+  let called = false;
+  return async (...args) => {
+    if (called) return { skipped: true };
+    called = true;
+    return fn(...args);
+  };
+}
+
 function logWithReq(req, message, extra = {}) {
   console.log(message, { requestId: req.requestId, ...extra });
 }
@@ -128,11 +137,16 @@ logWithReq(req, "📥 Chatwoot webhook hit", {
   sourceId,
 });
 
+const sendOnce = createOnce(sendSmsReply);
 
-  await sendSmsReply({
-    to: req.body?.conversation?.meta?.sender?.phone_number,
-    content: "Got it 👍",
-  });
+const result = await sendOnce({
+  to: phone,
+  content: "Got it 👍",
+});
+
+if (result?.skipped) {
+  logWithReq(req, "⏭️ SMS send skipped (already attempted)");
+}
 
   res.status(200).send("OK");
 });

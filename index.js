@@ -71,25 +71,6 @@ function requireChatwootSmsPayload(req, res, next) {
   next();
 }
 
-function requireChatwootSmsPayload(req, res, next) {
-  const phone =
-    req.body?.conversation?.meta?.sender?.phone_number;
-  const messageType =
-    req.body?.message?.message_type;
-
-  if (!phone || messageType !== "incoming") {
-    console.log("⚠️ Ignoring non-incoming or malformed Chatwoot webhook", {
-      hasPhone: Boolean(phone),
-      messageType,
-    });
-
-    // IMPORTANT: never trigger retries
-    return res.status(200).send("OK");
-  }
-
-  next();
-}
-
 app.post(
   "/chatwoot/webhook",
   requireChatwootSmsPayload,

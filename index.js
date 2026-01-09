@@ -104,6 +104,15 @@ next();
 
 function dedupeChatwootMessages(req, res, next) {
 const messageId = req.body?.message?.id;
+
+if (!messageId) {
+  logWithReq(req, "⚠️ Missing messageId — sending reply without caching");
+  await sendSmsReply({
+    to: phone,
+    content: "Got it 👍",
+  });
+  return res.status(200).send("OK");
+}
 const sourceId = req.body?.message?.source_id; // often Twilio SID
 
 if (!messageId) {

@@ -6,6 +6,8 @@ import OpenAI from "openai";
 const seenMessageIds = new Set();
 const CHAOS_MODE = process.env.CHAOS_MODE === "true";
 
+const repliedMessageIds = new Set();
+
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -131,6 +133,18 @@ const messageId = req.body?.message?.id;
 const sourceId = req.body?.message?.source_id;
 const event = req.body?.event;
 
+if (repliedMessageIds.has(messageId)) {
+  logWithReq(req, "🔁 Reply already sent for message", { messageId });
+  return res.status(200).send("OK");
+}
+
+repliedMessageIds.add(messageId);
+
+await sendSmsReply({
+  to: phone,
+  content: "Got it 👍",
+});
+
 logWithReq(req, "📥 Chatwoot webhook hit", {
   event,
   phone,
@@ -138,20 +152,11 @@ logWithReq(req, "📥 Chatwoot webhook hit", {
   sourceId,
 });
 
+res.status(200).send("OK");
+
 if (CHAOS_MODE) {
   logWithReq(req, "💥 Chaos mode enabled — simulating failure in handler");
   throw new Error("Simulated handler failure");
-}
-
-const sendOnce = createOnce(sendSmsReply);
-
-const result = await sendOnce({
-  to: phone,
-  content: "Got it 👍",
-});
-
-if (result?.skipped) {
-  logWithReq(req, "⏭️ SMS send skipped (already attempted)");
 }
 
   res.status(200).send("OK");

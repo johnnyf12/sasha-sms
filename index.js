@@ -142,15 +142,15 @@ const messageId = req.body?.message?.id;
 const sourceId = req.body?.message?.source_id;
 const event = req.body?.event;
 
+if (!messageId) {
+  logWithReq(req, "⚠️ No messageId — not replying", { sourceId });
+  return res.status(200).send("OK");
+}
+
 if (repliedMessageIds.has(messageId)) {
   logWithReq(req, "🔁 Reply already sent for message", { messageId });
   return res.status(200).send("OK");
 }
-
-await sendSmsReply({
-  to: phone,
-  content: "Got it 👍",
-});
 
 repliedMessageIds.add(messageId);
 

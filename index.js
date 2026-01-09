@@ -138,12 +138,12 @@ if (repliedMessageIds.has(messageId)) {
   return res.status(200).send("OK");
 }
 
-repliedMessageIds.add(messageId);
-
 await sendSmsReply({
   to: phone,
   content: "Got it 👍",
 });
+
+repliedMessageIds.add(messageId);
 
 logWithReq(req, "📥 Chatwoot webhook hit", {
   event,

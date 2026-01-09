@@ -143,6 +143,11 @@ if (repliedMessageIds.has(messageId)) {
   return res.status(200).send("OK");
 }
 
+await sendSmsReply({
+  to: phone,
+  content: "Got it 👍",
+});
+
 repliedMessageIds.add(messageId);
 
 logWithReq(req, "📥 Chatwoot webhook hit", {
@@ -152,12 +157,13 @@ logWithReq(req, "📥 Chatwoot webhook hit", {
   sourceId,
 });
 
+
 if (CHAOS_MODE) {
   logWithReq(req, "💥 Chaos mode enabled — simulating failure in handler");
   throw new Error("Simulated handler failure");
 }
 
-  res.status(200).send("OK");
+return res.status(200).send("OK");
 });
 
 app.post("/ping", (req, res) => {
